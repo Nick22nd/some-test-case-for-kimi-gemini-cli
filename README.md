@@ -4,6 +4,10 @@ some-test-case-for-kimi-gemini-cli
 - Kimi Cli仓库地址： https://github.com/MoonshotAI/kimi-cli
 - Gemini Cli 仓库地址：https://github.com/google-gemini/gemini-cli
 
+
+仓库都在当前目录下
+
+
 # 需要把一些固定的任务
 
 1. 你需要针对Kimi CLI 或者  Gemini CLI， 给出完成一项需求/功能/主题
