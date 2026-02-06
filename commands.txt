@@ -1,0 +1,341 @@
+# Gemini CLI 任务指令（单行格式，方便复制粘贴）
+
+## Task 1: 添加 /context 指令
+
+# 指令1
+我需要为当前的 Gemini CLI 项目添加一个新功能 /context。请先执行以下操作：扫描代码库，找到处理斜杠指令（Slash Commands）的核心逻辑文件。找到负责统计 Token 数量或管理会话历史（Session History）的类或函数。确认项目当前使用的 Token 计算库（如 tiktoken 或 Google SDK 自带的计数器）。向我汇报这些关键文件的位置以及 /context 指令应该插入的代码位置。
+
+# 指令2
+现在请根据上一步找到的逻辑，编写一个辅助函数 calculate_context_breakdown()。要求如下：分类逻辑：将当前 Context 中的消息分为以下四类：System: 系统预设提示词、User: 用户输入的历史记录、Assistant: 模型之前的回复、Tools/Files: 通过外部工具加载的内容或读取的文件内容。数据处理：计算每一类的 Token 总数，并获取当前模型支持的总 Context Limit（如果无法动态获取，请先定义一个常量）。输出格式：返回一个字典，包含各分类的 Token 数、百分比以及总计已使用百分比。
+
+# 指令3
+接下来请在 packages/cli/src/ui/commands/ 目录下创建 context.ts 文件，定义 /context 斜杠命令：使用 SlashCommand 接口定义命令结构，包括 name、description 等属性。在 action 函数中调用 calculate_context_breakdown() 获取上下文统计信息。使用 Ink 组件库渲染一个格式化的统计表格，显示各类别的 Token 数量和百分比。添加颜色标识，让不同类型的信息在终端中更易区分。
+
+# 指令4
+最后，在 packages/cli/src/services/BuiltinCommandLoader.ts 中注册新命令：导入刚创建的 context 命令。将 context 命令添加到 allDefinitions 数组中。确保命令的依赖注入配置正确（如 config 参数）。运行项目并测试 /context 命令，验证统计信息是否正确显示。
+
+## Task 2: 添加 /search 指令
+
+# 指令1
+我需要为 Gemini CLI 添加一个 /search 指令，用于在代码库中搜索文本。请先执行以下操作：扫描代码库，找到处理文件搜索相关的工具函数。确认项目是否已经有 grep 或类似的搜索实现（可能位于 packages/cli/src/utils/ 或类似目录）。找到斜杠命令的注册位置和命令定义的模板文件。向我汇报现有的搜索功能实现和 /search 命令应该插入的位置。
+
+# 指令2
+现在请创建搜索功能的辅助函数 search_codebase()。要求如下：函数参数：接受搜索关键词、搜索目录（默认为当前工作目录）、文件类型过滤（可选）、是否区分大小写等参数。搜索逻辑：使用 ripgrep 或项目已有的搜索工具进行搜索。结果处理：返回包含文件路径、行号、匹配内容行的结果列表。错误处理：处理搜索目录不存在、无权限访问等异常情况。
+
+# 指令3
+接下来请在 packages/cli/src/ui/commands/ 目录下创建 search.ts 文件，定义 /search 斜杠命令：定义命令结构，支持子命令如 /search --case-sensitive、/search --type=ts 等。在 action 函数中解析用户参数，调用 search_codebase() 函数。使用 Ink 组件渲染搜索结果，包括文件名、行号和匹配内容。添加分页功能，如果结果过多，支持上下滚动查看。
+
+# 指令4
+最后，在 packages/cli/src/services/BuiltinCommandLoader.ts 中注册新命令：导入刚创建的 search 命令。将 search 命令添加到 allDefinitions 数组中。配置命令的参数解析和验证逻辑。运行项目并测试 /search 命令，验证搜索功能是否正常工作。
+
+## Task 3: 添加 /export 指令
+
+# 指令1
+我需要为 Gemini CLI 添加一个 /export 指令，用于导出当前会话记录。请先执行以下操作：扫描代码库，找到会话管理相关的文件（可能位于 packages/cli/src/utils/sessions.ts 或类似位置）。找到会话数据的存储结构和类型定义。找到文件写入相关的工具函数或模块。确认项目是否已经有文件导出的功能可以参考。向我汇报会话数据的结构、文件写入工具的位置以及 /export 命令应该插入的位置。
+
+# 指令2
+现在请创建导出功能的辅助函数 export_session()。要求如下：函数参数：接受会话 ID、导出格式（json 或 markdown）、输出文件路径等参数。JSON 格式导出：将会话消息序列化为 JSON，包括时间戳、角色、内容等完整信息。Markdown 格式导出：将会话转换为易读的 Markdown 格式，使用代码块标记不同角色的消息。文件写入：使用项目的文件写入工具，处理文件路径验证、权限检查等。错误处理：处理会话不存在、文件写入失败等异常情况。
+
+# 指令3
+接下来请在 packages/cli/src/ui/commands/ 目录下创建 export.ts 文件，定义 /export 斜杠命令：定义命令结构，支持子命令如 /export --format=json、/export --output=./conversation.md 等。在 action 函数中获取当前会话 ID，解析用户指定的导出格式和输出路径。调用 export_session() 函数执行导出操作。使用 Ink 组件显示导出进度和成功/失败消息。
+
+# 指令4
+最后，在 packages/cli/src/services/BuiltinCommandLoader.ts 中注册新命令：导入刚创建的 export 命令。将 export 命令添加到 allDefinitions 数组中。配置命令的参数解析和默认值设置。运行项目并测试 /export 命令，验证导出功能是否正常工作，检查生成的文件格式是否正确。
+
+## Task 4: 添加 /token 指令
+
+# 指令1
+我需要为 Gemini CLI 添加一个 /token 指令，用于显示 Token 使用统计。请先执行以下操作：扫描代码库，找到 Token 计数相关的代码和函数。找到会话历史（Session History）的存储位置和数据结构。确认项目使用的 Token 计算库和计数方法。找到命令注册的位置和命令定义的模板。向我汇报 Token 计数的实现方式、会话数据结构以及 /token 命令应该插入的位置。
+
+# 指令2
+现在请创建 Token 统计功能的辅助函数 calculate_token_stats()。要求如下：函数参数：接受会话对象或会话 ID 作为输入。Token 计算：遍历会话中的所有消息，计算每条消息的 Token 数量。统计信息：计算以下数据：总 Token 数量（输入 + 输出）、用户消息 Token 数、助手回复 Token 数、系统提示词 Token 数、工具调用 Token 数、上下文窗口使用百分比。返回格式：返回一个结构化的对象，包含所有统计信息。
+
+# 指令3
+接下来请在 packages/cli/src/ui/commands/ 目录下创建 token.ts 文件，定义 /token 斜杠命令：定义命令结构，可以添加选项如 /token --verbose 显示详细信息，或 /token --history 显示历史统计。在 action 函数中获取当前会话，调用 calculate_token_stats() 函数。使用 Ink 组件渲染一个美观的统计面板，使用进度条、表格或图表展示数据。添加颜色标识，让不同的统计项在终端中更易区分。
+
+# 指令4
+最后，在 packages/cli/src/services/BuiltinCommandLoader.ts 中注册新命令：导入刚创建的 token 命令。将 token 命令添加到 allDefinitions 数组中。确保命令的依赖注入配置正确。运行项目并测试 /token 命令，验证统计信息是否正确显示，测试各种选项参数是否正常工作。
+
+## Task 5: 添加 OpenAI GPT 模型支持
+
+# 指令1
+我需要为当前的 Gemini CLI 项目添加 OpenAI GPT 模型支持。请先执行以下操作：扫描代码库，找到模型配置相关的文件（应该在 packages/core/src/config/ 目录）。查看 models.ts 和 defaultModelConfigs.ts 的内容，了解模型定义和配置的结构。找到 Content Generator 或 LLM Client 的创建位置，了解如何注册新的模型提供商。向我汇报模型配置的结构、如何添加新模型提供商以及需要修改的关键文件位置。
+
+# 指令2
+现在请在 packages/core/src/config/models.ts 中添加 OpenAI 模型定义：在 VALID_GEMINI_MODELS 集合之外，定义 OpenAI 模型常量：GPT_4 = 'gpt-4'、GPT_4_TURBO = 'gpt-4-turbo'、GPT_4O = 'gpt-4o'、GPT_4O_MINI = 'gpt-4o-mini'。创建 OpenAI 模型验证集合或使用现有的验证机制。确保新模型能够被配置系统识别和验证。
+
+# 指令3
+接下来请在 packages/core/src/config/defaultModelConfigs.ts 中添加 OpenAI 模型配置：为每个 OpenAI 模型创建配置对象，继承自适当的基础配置：'gpt-4': { extends: 'chat-base', modelConfig: { model: 'gpt-4', generateContentConfig: { temperature: 0.7, topP: 0.95, maxOutputTokens: 8192, }, }, }。为 gpt-4-turbo、gpt-4o、gpt-4o-mini 创建类似配置，根据每个模型的特点调整参数。
+
+# 指令4
+最后，实现 OpenAI API 客户端集成：创建或修改 Content Generator，添加对 OpenAI API 的调用支持。实现 OpenAI API 的认证机制（使用环境变量 OPENAI_API_KEY）。确保请求和响应格式能够正确转换（OpenAI 格式到 Gemini CLI 内部格式）。测试新添加的 OpenAI 模型，验证是否能够正常生成响应。更新文档，说明如何配置和使用 OpenAI 模型。
+
+## Task 6: 添加 Anthropic Claude 模型支持
+
+# 指令1
+我需要为当前的 Gemini CLI 项目添加 Anthropic Claude 模型支持。请先执行以下操作：扫描代码库，确认模型配置文件位置（packages/core/src/config/models.ts 和 defaultModelConfigs.ts）。查看现有的模型提供商集成方式，了解如何添加新的提供商。找到 API 调用层，了解如何实现 Claude API 的调用。向我汇报需要修改的文件、模型配置格式以及 API 集成方式。
+
+# 指令2
+现在请在 packages/core/src/config/models.ts 中添加 Claude 模型定义：定义 Claude 模型常量：CLAUDE_3_OPUS = 'claude-3-opus-20240229'、CLAUDE_3_SONNET = 'claude-3-sonnet-20240229'、CLAUDE_3_5_SONNET = 'claude-3-5-sonnet-20241022'、CLAUDE_3_5_HAIKU = 'claude-3-5-haiku-20241022'。在模型验证机制中添加 Claude 模型的支持。
+
+# 指令3
+接下来请在 packages/core/src/config/defaultModelConfigs.ts 中添加 Claude 模型配置：为每个 Claude 模型创建配置对象：'claude-3-5-sonnet-20241022': { extends: 'chat-base', modelConfig: { model: 'claude-3-5-sonnet-20241022', generateContentConfig: { temperature: 0.7, topP: 0.95, maxOutputTokens: 8192, }, }, }。根据每个 Claude 模型的特点（context window、speed 等）调整配置参数。
+
+# 指令4
+最后，实现 Anthropic Claude API 客户端集成：创建 Claude API 客户端，处理 API 认证（使用 ANTHROPIC_API_KEY 环境变量）。实现 Claude API 的消息格式转换（Claude Messages API 到 Gemini CLI 内部格式）。处理流式响应（如果支持）和错误处理。测试 Claude 模型集成，验证响应质量和速度。更新配置示例，说明如何切换到 Claude 模型。
+
+## Task 7: 创建自定义代码审查 Agent
+
+# 指令1
+我需要为当前的 Gemini CLI 项目创建一个代码审查 Agent。请先执行以下操作：扫描代码库，找到 Agent 系统的核心文件（packages/core/src/agents/ 目录）。查看 agentLoader.ts 和 types.ts，了解 Agent 的定义结构和加载机制。查看现有 Agent 的实现示例（如果有）。向我汇报 Agent 的定义格式、如何创建自定义 Agent 以及 Agent 注册方式。
+
+# 指令2
+现在创建代码审查 Agent 的配置文件（.agent 卡片）：在 packages/core/src/agents/ 目录下创建 code-reviewer.agent.md 文件：---\nname: code-reviewer\ndescription: Expert code reviewer focusing on quality, security, and performance\nmodel: gemini-2.5-pro\ntemperature: 0.3\nmax_turns: 5\ntimeout_mins: 10\ntools: ["read_file", "grep", "git"]\n---\n\nYou are an expert code reviewer with deep knowledge of:\n- Software engineering best practices\n- Security vulnerabilities and common attacks\n- Performance optimization techniques\n- Code maintainability and readability\n- Testing strategies\n\nWhen reviewing code:\n1. Identify potential security issues (SQL injection, XSS, etc.)\n2. Point out performance bottlenecks\n3. Suggest improvements for code clarity\n4. Check for proper error handling\n5. Verify adherence to coding standards\n6. Provide specific line numbers for issues\n7. Balance criticism with positive feedback\n\nAlways provide actionable recommendations with examples.
+
+# 指令3
+接下来注册新的代码审查 Agent：在 packages/core/src/agents/agentLoader.ts 中添加 Agent 加载逻辑：确保 .agent.md 文件能够被自动发现和加载。验证 Agent 的元数据解析（frontmatter 部分能够正确读取）。测试 Agent 是否能够被正确实例化和调用。
+
+# 指令4
+最后，添加 /code-review 斜杠命令来触发代码审查 Agent：在 packages/cli/src/ui/commands/ 目录下创建 codeReview.ts 文件。定义命令结构，支持参数如 /code-review --file=<路径> 或 /code-review --branch=<分支名>。在 action 函数中调用代码审查 Agent，传入待审查的代码上下文。使用 Ink 组件展示审查结果，包括问题列表、严重程度评级和建议。测试完整的代码审查流程。
+
+## Task 8: 集成自定义 MCP 服务器
+
+# 指令1
+我需要为当前的 Gemini CLI 项目集成一个自定义 MCP 服务器。请先执行以下操作：扫描代码库，找到 MCP 集成相关的代码（packages/core/src/tools/mcp-client-manager.ts 或类似位置）。查看 MCP 服务器的配置方式，了解如何注册和启动 MCP 服务器。找到配置文件位置（~/.gemini-cli/config 或 mcpServers.json）。查看现有的 MCP 服务器集成示例。向我汇报 MCP 服务器的配置格式、集成方式以及需要修改的文件。
+
+# 指令2
+现在创建自定义 MCP 服务器的配置：在配置文件中添加 MCP 服务器定义：{\n  "mcpServers": {\n    "my-custom-server": {\n      "command": "node",\n      "args": ["path/to/server.js"],\n      "env": {\n        "API_KEY": "$MY_API_KEY",\n        "CUSTOM_PARAM": "value"\n      },\n      "cwd": "./server-dir",\n      "includeTools": ["tool1", "tool2"],\n      "excludeTools": ["sensitive-tool"],\n      "trust": false\n    }\n  }\n}。确保配置格式符合项目的要求，环境变量能够正确解析。
+
+# 指令3
+接下来实现 MCP 服务器的启动和工具注册：在 mcp-client-manager.ts 中添加启动逻辑：读取配置中的 MCP 服务器定义。为每个服务器创建客户端连接。实现工具列表的获取和注册（includeTools 和 excludeTools 过滤）。处理服务器的启动、停止和重新加载。添加错误处理，处理服务器启动失败、连接超时等情况。
+
+# 指令4
+最后，添加 MCP 服务器管理命令：在 packages/cli/src/ui/commands/ 目录下创建 mcp.ts 文件。定义子命令：/mcp list：列出所有已配置的 MCP 服务器、/mcp start <server>：启动指定的 MCP 服务器、/mcp stop <server>：停止指定的 MCP 服务器、/mcp test <server>：测试服务器连接和工具可用性。测试 MCP 服务器的启动、停止和工具调用功能。验证从 MCP 服务器提供的工具是否能够在 CLI 中正常使用。
+
+## Task 9: 添加 OAuth 认证提供者
+
+# 指令1
+我需要为当前的 Gemini CLI 项目添加 OAuth 认证提供者。请先执行以下操作：扫描代码库，找到认证相关的代码（packages/core/src/agents/auth-provider/ 或 packages/core/src/mcp/ 目录）。查看现有的认证实现（Google Auth、OAuth2 等），了解认证提供者的接口和生命周期。找到认证配置的存储位置（配置文件、凭证存储等）。向我汇报认证提供者的接口定义、如何添加新的认证方式以及凭证存储机制。
+
+# 指令2
+现在创建自定义 OAuth 认证提供者：在 packages/core/src/agents/auth-provider/ 目录下创建 custom-provider.ts 文件：import { BaseA2AAuthProvider, HttpHeaders } from './base-provider';\n\nexport class CustomAuthProvider extends BaseA2AAuthProvider {\n  readonly type = 'custom';\n\n  private accessToken: string | null = null;\n\n  async initialize(): Promise<void> {\n    // 初始化认证状态\n    // 可能需要从配置读取或触发 OAuth 流程\n  }\n\n  async headers(): Promise<HttpHeaders> {\n    if (!this.accessToken) {\n      await this.refreshToken();\n    }\n    return {\n      'Authorization': `Bearer ${this.accessToken}`,\n      'Content-Type': 'application/json'\n    };\n  }\n\n  private async refreshToken(): Promise<void> {\n    // 实现 token 刷新逻辑\n    // 调用第三方 OAuth 端点\n  }\n\n  async revoke(): Promise<void> {\n    // 撤销认证\n    this.accessToken = null;\n  }\n}。
+
+# 指令3
+接下来注册新的认证提供者：在认证管理器中添加 CustomAuthProvider 的注册：确保提供者类型 'custom' 能够被识别。在配置系统中添加相关参数支持：{\n  "auth": {\n    "custom": {\n      "clientId": "your-client-id",\n      "clientSecret": "your-client-secret",\n      "authorizationEndpoint": "https://auth.example.com/oauth/authorize",\n      "tokenEndpoint": "https://auth.example.com/oauth/token",\n      "scopes": ["read:api", "write:api"]\n    }\n  }\n}。实现 OAuth 设备授权流程（如果适用）。
+
+# 指令4
+最后，添加认证管理命令和凭证存储：在 packages/cli/src/ui/commands/ 目录下创建 auth.ts 文件。定义命令：/auth login <provider>：触发登录流程、/auth logout <provider>：撤销认证、/auth status <provider>：查看认证状态。实现凭证的安全存储（使用操作系统密钥链或加密文件）。测试完整的 OAuth 流程，包括授权、token 刷新和撤销。验证带有认证的 API 调用是否正常工作。
+
+## Task 10: 创建自定义终端主题
+
+# 指令1
+我需要为当前的 Gemini CLI 项目创建自定义终端主题。请先执行以下操作：扫描代码库，找到 UI 主题相关的代码（packages/cli/src/ui/themes/ 或类似目录）。查看现有主题的实现，了解主题系统的接口和配置方式。找到主题配置文件（可能是 JSON 或 TypeScript 文件）。查看 Ink 组件库如何应用主题样式。向我汇报主题系统的结构、如何定义新主题以及主题应用的机制。
+
+# 指令2
+现在创建自定义主题配置：在 packages/cli/src/ui/themes/ 目录下创建 customTheme.ts 文件：import { CustomTheme } from '../types';\n\nexport const customTheme: CustomTheme = {\n  type: 'custom',\n  name: 'Custom',\n  text: {\n    primary: '#00ff00',\n    secondary: '#00cc00',\n    accent: '#00ff88',\n    muted: '#008800',\n    error: '#ff4444',\n    warning: '#ffaa00',\n    success: '#00ff00'\n  },\n  background: {\n    primary: '#001100',\n    secondary: '#002200',\n    diff: {\n      added: '#003300',\n      removed: '#330000'\n    }\n  },\n  border: {\n    primary: '#00aa00',\n    secondary: '#006600',\n    focus: '#00ff88'\n  },\n  syntax: {\n    keyword: '#ff00ff',\n    string: '#00ff00',\n    comment: '#008800',\n    function: '#00aaff'\n  }\n};。根据个人喜好调整颜色值，创建和谐的配色方案。
+
+# 指令3
+接下来注册自定义主题：在主题管理器中添加新主题的注册：确保 customTheme 能够被主题系统识别和加载。在配置系统中添加主题选择支持：{\n  "ui": {\n    "customThemes": {\n      "my-theme": "packages/cli/src/ui/themes/customTheme"\n    },\n    "theme": "my-theme"\n  }\n}。支持通过命令行或配置文件切换主题。
+
+# 指令4
+最后，添加主题管理命令和预览功能：在 packages/cli/src/ui/commands/ 目录下创建 theme.ts 文件。定义命令：/theme list：列出所有可用主题、/theme set <name>：设置当前主题、/theme preview <name>：预览主题效果（显示示例 UI 组件）。在 App.tsx 或 AppContainer.tsx 中应用主题到所有 UI 组件。测试主题切换功能，验证所有组件的样式是否正确应用。确保主题在不同终端环境下的兼容性。
+
+## Task 11: 代码架构分析 - Agent 系统解析
+
+# 指令1
+请阅读并分析 Gemini CLI 的 Agent 系统架构。请执行以下操作：扫描 packages/core/src/agents/ 目录，列出所有关键文件。阅读 agentLoader.ts 文件，了解 Agent 的加载机制和生命周期。阅读 types.ts 文件，理解 Agent 的类型定义和接口。阅读 base-agent.ts（如果存在），了解 Agent 的基类实现。向我汇报 Agent 系统的目录结构、核心组件以及它们之间的关系。
+
+# 指令2
+现在请深入分析 Agent 的创建和执行流程：查看 Agent 的定义格式（.agent 文件或配置文件）。理解 Agent 的元数据（name、description、model、temperature 等）是如何使用的。分析 Agent 如何获取工具（tools）以及工具的注册机制。查看 Agent 的执行逻辑，了解如何处理用户输入和生成响应。分析 subagent 机制，理解 Agent 之间的协作方式。
+
+# 指令3
+接下来分析 Agent 系统的设计模式：识别 Agent 系统使用的设计模式（工厂模式、策略模式、观察者模式等）。分析 Agent 配置的继承机制（extends 字段的作用）。理解 Agent 上下文（context）的传递和管理方式。分析 Agent 错误处理和重试机制。评估系统的可扩展性，说明如何添加新类型的 Agent。
+
+# 指令4
+最后，生成 Agent 系统的架构分析报告：创建一份详细的架构文档，包括：1. 系统概述和核心概念、2. 组件图和类关系、3. 关键流程图（Agent 加载、执行、子 Agent 调用）、4. 配置格式说明、5. 扩展点和使用建议。使用图表（Mermaid 或 ASCII）展示架构和流程。提供代码示例，说明如何创建自定义 Agent。报告应清晰易懂，便于其他开发者理解和使用 Agent 系统。
+
+## Task 12: 代码架构分析 - MCP 集成机制
+
+# 指令1
+请阅读并分析 Gemini CLI 的 MCP 集成机制。请执行以下操作：扫描 packages/core/src/tools/ 目录，查找 MCP 相关的文件。阅读 mcp-client-manager.ts 文件，了解 MCP 客户端的管理机制。查看 MCP 相关的类型定义文件，理解接口和数据结构。找到 MCP 服务器的配置位置和格式。向我汇报 MCP 系统的目录结构、核心组件以及配置方式。
+
+# 指令2
+现在请深入分析 MCP 服务器的生命周期：了解 MCP 服务器的启动流程（如何根据配置创建服务器实例）。分析 MCP 客户端与服务器的通信机制（stdio、HTTP、SSE 等）。查看工具列表的获取和注册流程，理解 MCP 工具如何暴露给 CLI。分析 MCP 服务器的停止和清理机制。查看错误处理，了解服务器连接失败时的处理方式。
+
+# 指令3
+接下来分析 MCP 工具的调用机制：了解 MCP 工具的调用流程（从用户输入到工具执行）。分析工具参数的传递和响应的解析。查看工具权限管理（trust、includeTools、excludeTools）的实现。理解 MCP 工具与内置工具的集成方式。分析 MCP 工具调用的异步处理和超时机制。
+
+# 指令4
+最后，生成 MCP 集成机制的架构分析报告：创建一份详细的文档，包括：1. MCP 协议简介和在 Gemini CLI 中的作用、2. 系统架构图和组件关系、3. MCP 服务器生命周期流程图、4. 工具调用流程图、5. 配置说明和示例、6. 扩展指南：如何集成新的 MCP 服务器、7. 安全性考虑和最佳实践。提供代码示例，说明如何创建自定义 MCP 服务器。报告应包含技术细节，便于开发者进行深度集成和扩展。
+
+---
+
+# Kimi CLI 任务指令（单行格式，方便复制粘贴）
+
+## Task 1: 添加 /analyze 指令
+
+# 指令1
+我需要为当前的 Kimi CLI 项目添加一个新功能 /analyze。请先执行以下操作：扫描代码库，找到斜杠命令注册的位置（应该在 src/kimi_cli/soul/slash.py）。查看现有的斜杠命令实现，了解命令注册和执行的流程。找到文件操作相关的工具函数，特别是文件读取和目录遍历的功能。确认项目使用的代码分析或 AST 解析库（如果有的话）。向我汇报斜杠命令的注册方式、文件操作工具的位置以及 /analyze 命令应该插入的代码位置。
+
+# 指令2
+现在请创建代码分析功能的辅助函数 analyze_project_structure()。要求如下：函数参数：接受项目根目录路径、分析深度（默认全部分析）、包含/排除的文件模式等参数。分析逻辑：遍历项目目录，收集所有源代码文件（按扩展名过滤）、分析项目结构（目录层级、模块组织）、统计代码行数、函数数量、类数量等指标、识别项目类型（如 Python、TypeScript、React 等）、分析依赖关系（如果可能）。输出格式：返回一个结构化的报告，包含项目概览、文件结构统计、代码质量指标等信息。
+
+# 指令3
+接下来请在 src/kimi_cli/soul/slash.py 中使用 @registry.command 装饰器注册 /analyze 斜杠命令：使用 @registry.command 装饰器定义命令，支持别名如 /analyze 或 /a。在命令处理函数中接收 soul 和 args 参数。解析用户传入的参数（如路径、深度、输出格式等）。调用 analyze_project_structure() 函数执行分析。将分析结果格式化为易读的文本，使用表格、列表等方式展示。考虑添加 --save 选项，将分析报告保存为文件。
+
+# 指令4
+最后，测试新添加的 /analyze 命令：在 Kimi CLI 的交互模式中输入 /analyze 验证命令是否正常注册。使用不同参数测试命令，如 /analyze --depth=2、/analyze --save=report.md 等。检查分析报告的内容是否准确、格式是否清晰。确认错误处理是否完善（如目录不存在、权限不足等情况）。如果有任何问题，请修复并重新测试。
+
+## Task 2: 添加 /refactor 指令
+
+# 指令1
+我需要为 Kimi CLI 添加一个 /refactor 指令，用于提供代码重构建议。请先执行以下操作：扫描代码库，找到文件操作相关的工具（位于 src/kimi_cli/tools/file/）。查看现有的文件读取和解析工具（如 read.py、utils.py）。确认项目是否有代码分析或 AST 解析的功能。找到斜杠命令注册的位置（src/kimi_cli/soul/slash.py）。查看其他斜杠命令的实现作为参考。向我汇报文件操作工具的使用方式、代码分析能力以及 /refactor 命令应该插入的位置。
+
+# 指令2
+现在请创建重构建议功能的辅助函数 generate_refactor_suggestions()。要求如下：函数参数：接受文件路径、重构类型（如性能优化、可读性提升、安全性改进等）等参数。分析逻辑：读取目标文件内容、使用 AST 解析或其他方式分析代码结构、根据重构类型检查代码问题、识别代码异味（Code Smells）和改进机会。建议类型：性能优化：识别低效的循环、重复计算等、可读性提升：建议改进命名、减少嵌套等、安全性改进：检查常见的安全漏洞模式、最佳实践：推荐符合 Python 风格指南的改进。输出格式：返回结构化的重构建议列表，每条建议包括问题描述、位置、建议方案等。
+
+# 指令3
+接下来请在 src/kimi_cli/soul/slash.py 中注册 /refactor 斜杠命令：使用 @registry.command 装饰器定义命令，支持别名如 /refactor 或 /r。在命令处理函数中接收 soul 和 args 参数。解析用户参数，包括目标文件路径和重构类型。调用文件读取工具获取文件内容。调用 generate_refactor_suggestions() 函数生成建议。将建议格式化为易读的文本，使用代码块展示原始代码和改进建议。考虑添加 --auto 选项，让 AI 自动应用某些重构建议。
+
+# 指令4
+最后，测试新添加的 /refactor 命令：在 Kimi CLI 的交互模式中输入 /refactor <文件路径> 验证命令功能。使用不同重构类型测试命令，如 /refactor --type=performance、/refactor --type=readability 等。检查重构建议的质量和准确性。确认错误处理是否完善（如文件不存在、格式不支持等情况）。如果有 --auto 选项，测试自动应用功能是否正确。如果有任何问题，请修复并重新测试。
+
+## Task 3: 添加 /test 指令
+
+# 指令1
+我需要为 Kimi CLI 添加一个 /test 指令，用于生成单元测试代码。请先执行以下操作：扫描代码库，找到代码解析和分析相关的工具。查看文件操作工具（src/kimi_cli/tools/file/）的使用方式。确认项目使用的测试框架（如 pytest、unittest 等）。找到斜杠命令注册的位置（src/kimi_cli/soul/slash.py）。查看项目中已有的测试文件，了解测试编写风格。向我汇报代码解析能力、测试框架、现有测试风格以及 /test 命令应该插入的位置。
+
+# 指令2
+现在请创建测试生成功能的辅助函数 generate_unit_tests()。要求如下：函数参数：接受文件路径、函数名/类名、测试框架（默认 pytest）等参数。分析逻辑：读取目标文件内容、解析指定的函数或类（使用 AST 解析）、提取函数签名、参数、返回类型、逻辑结构、识别边界条件、异常情况等需要测试的场景。测试生成策略：为每个函数生成基本测试用例（正常输入）、生成边界值测试用例、生成异常情况测试用例、为类生成单元测试，包括方法测试、添加必要的 mock 和 fixture。输出格式：返回完整的测试代码字符串，符合项目的测试风格。
+
+# 指令3
+接下来请在 src/kimi_cli/soul/slash.py 中注册 /test 斜杠命令：使用 @registry.command 装饰器定义命令，支持别名如 /test 或 /t。在命令处理函数中接收 soul 和 args 参数。解析用户参数，包括目标文件路径、函数名/类名、测试框架等。调用代码解析工具获取函数或类的详细信息。调用 generate_unit_tests() 函数生成测试代码。将生成的测试代码展示给用户，使用代码块格式。考虑添加 --save 选项，将测试代码保存到文件（如 tests/test_<filename>.py）。
+
+# 指令4
+最后，测试新添加的 /test 命令：在 Kimi CLI 的交互模式中输入 /test <文件路径> --func=<函数名> 验证命令功能。测试生成不同类型函数的测试用例（如普通函数、类方法、异步函数等）。使用 --save 选项测试保存功能，检查生成的测试文件位置和内容。运行生成的测试代码，确保测试能够通过。检查测试覆盖率和测试质量。确认错误处理是否完善（如函数不存在、无法解析等情况）。如果有任何问题，请修复并重新测试。
+
+## Task 4: 添加 /history 指令
+
+# 指令1
+我需要为 Kimi CLI 添加一个 /history 指令，用于查看和搜索历史会话记录。请先执行以下操作：扫描代码库，找到会话管理相关的文件（应该在 src/kimi_cli/session.py）。查看会话数据的存储位置和格式（文件或数据库）。找到会话列表、会话详情、会话搜索等相关函数。找到斜杠命令注册的位置（src/kimi_cli/soul/slash.py）。查看其他斜杠命令的实现作为参考。向我汇报会话数据结构、会话管理功能以及 /history 命令应该插入的位置。
+
+# 指令2
+现在请创建历史记录查询功能的辅助函数 search_session_history()。要求如下：函数参数：接受搜索关键词、时间范围、会话状态等参数。查询逻辑：读取所有历史会话记录、根据搜索关键词过滤会话（匹配会话标题、消息内容等）、根据时间范围过滤会话（如最近7天、本月等）、根据会话状态过滤（如已归档、活跃等）。排序选项：按时间排序（最新/最旧）、按消息数量排序、按会话长度排序。输出格式：返回会话列表，每条记录包括会话 ID、标题、时间、消息摘要等信息。
+
+# 指令3
+接下来请在 src/kimi_cli/soul/slash.py 中注册 /history 斜杠命令：使用 @registry.command 装饰器定义命令，支持别名如 /history 或 /h。在命令处理函数中接收 soul 和 args 参数。解析用户参数，包括搜索关键词、时间范围、排序方式等。调用会话管理函数获取历史记录。调用 search_session_history() 函数进行搜索和过滤。将结果格式化为易读的列表，每条记录显示关键信息。考虑添加子命令：/history list：列出所有历史会话、/history show <id>：显示指定会话的详细内容、/history search <keyword>：搜索包含关键词的会话、/history delete <id>：删除指定会话。
+
+# 指令4
+最后，测试新添加的 /history 命令：在 Kimi CLI 的交互模式中输入 /history 验证命令功能。测试列出所有历史会话：/history list。测试搜索功能：/history search "关键词"。测试查看指定会话：/history show <会话ID>。测试时间范围过滤：/history --days=7。测试不同排序方式：/history --sort=time。测试删除功能：/history delete <会话ID>。检查命令输出是否清晰、格式是否美观。确认错误处理是否完善（如会话不存在、权限不足等情况）。如果有任何问题，请修复并重新测试。
+
+## Task 5: 添加 OpenAI GPT 模型支持
+
+# 指令1
+我需要为当前的 Kimi CLI 项目配置 OpenAI GPT 模型支持。请先执行以下操作：扫描代码库，找到 Provider 类型和模型配置相关的代码（src/kimi_cli/config.py 或类似位置）。查看现有的 Provider 类型定义，了解支持的模型提供商（kimi、anthropic、gemini 等）。找到模型配置的存储位置（~/.kimi/config.toml 或类似配置文件）。查看 Provider 的实现方式，了解如何添加新的模型提供商。向我汇报 Provider 类型、配置格式以及如何添加 OpenAI 支持的方法。
+
+# 指令2
+现在请在配置文件中添加 OpenAI Provider 配置：编辑 ~/.kimi/config.toml 文件（或创建新的配置文件）：[providers.openai]\ntype = "openai_responses"\nbase_url = "https://api.openai.com/v1"\napi_key = "sk-your-openai-key"\n\n[mcp.client]\n# 确保客户端支持 OpenAI API 格式\n\n设置环境变量作为备选方案：\nexport OPENAI_API_KEY="sk-your-openai-key"\nexport OPENAI_BASE_URL="https://api.openai.com/v1"。
+
+# 指令3
+接下来添加 OpenAI 模型定义：在配置文件中添加 GPT 模型配置：[models.gpt-4o]\nprovider = "openai"\nmodel = "gpt-4o"\nmax_context_size = 128000\n\n[models.gpt-4-turbo]\nprovider = "openai"\nmodel = "gpt-4-turbo"\nmax_context_size = 128000\n\n[models.gpt-4]\nprovider = "openai"\nmodel = "gpt-4"\nmax_context_size = 8192\n\n设置默认模型：\ndefault_model = "gpt-4o"。
+
+# 指令4
+最后，测试 OpenAI 模型集成：重启 Kimi CLI，验证配置是否正确加载。使用 kimi info 命令查看可用的模型列表。测试使用 GPT 模型进行对话：kimi --model gpt-4o。验证 API 调用是否正常，响应是否符合预期。测试不同 GPT 模型的切换和功能。更新文档，说明如何配置和使用 OpenAI 模型。
+
+## Task 6: 添加 Anthropic Claude 模型支持
+
+# 指令1
+我需要为当前的 Kimi CLI 项目配置 Anthropic Claude 模型支持。请先执行以下操作：扫描代码库，查看 anthropic Provider 的实现。确认 Provider 类型定义中是否已包含 "anthropic" 类型。查看 Claude 模型的 API 调用方式，了解请求和响应格式。找到配置文件的位置和格式（~/.kimi/config.toml）。向我汇报 Anthropic Provider 的配置方式、Claude 模型参数以及如何正确配置。
+
+# 指令2
+现在请在配置文件中添加 Anthropic Provider 配置：编辑 ~/.kimi/config.toml 文件：[providers.anthropic]\ntype = "anthropic"\nbase_url = "https://api.anthropic.com"\napi_key = "sk-ant-your-claude-key"\n\n设置环境变量作为备选方案：\nexport ANTHROPIC_API_KEY="sk-ant-your-claude-key"。
+
+# 指令3
+接下来添加 Claude 模型定义：在配置文件中添加 Claude 模型配置：[models.claude-3-5-sonnet-20241022]\nprovider = "anthropic"\nmodel = "claude-3-5-sonnet-20241022"\nmax_context_size = 200000\n\n[models.claude-3-opus-20240229]\nprovider = "anthropic"\nmodel = "claude-3-opus-20240229"\nmax_context_size = 200000\n\n[models.claude-3-haiku-20240307]\nprovider = "anthropic"\nmodel = "claude-3-haiku-20240307"\nmax_context_size = 200000\n\n设置默认模型（可选）：\ndefault_model = "claude-3-5-sonnet-20241022"。
+
+# 指令4
+最后，测试 Claude 模型集成：重启 Kimi CLI，验证配置是否正确加载。使用 kimi info 命令查看可用的 Claude 模型列表。测试使用 Claude 模型进行对话：kimi --model claude-3-5-sonnet-20241022。验证 API 调用是否正常，响应质量和速度是否符合预期。测试不同 Claude 模型的切换，比较性能和效果。更新文档，说明如何配置和使用 Claude 模型。
+
+## Task 7: 创建自定义 Python 开发 Agent
+
+# 指令1
+我需要为当前的 Kimi CLI 项目创建一个 Python 开发专用 Agent。请先执行以下操作：扫描代码库，查看现有的 Agent 规范文件（src/kimi_cli/agents/ 目录）。阅读 default agent 的配置文件，了解 Agent 规范的结构和格式。查看 system prompt 模板文件，了解如何定制 Agent 的行为。查看工具注册和排除的配置方式。向我汇报 Agent 规范的结构、如何创建自定义 Agent 以及 Agent 配置文件的存储位置。
+
+# 指令2
+现在创建 Python 开发 Agent 的目录和配置文件：在 ~/.kimi/ 目录下创建 python-dev-agent/ 子目录。创建 agent.yaml 配置文件：version: 1\nagent:\n  name: "Python Development Specialist"\n  system_prompt_path: ./system.md\n  system_prompt_args:\n    ROLE_ADDITIONAL: |\n      You are a Python development specialist with deep expertise in:\n      - Python 3.8+ features and best practices\n      - Popular Python frameworks (Django, FastAPI, Flask, SQLAlchemy, Pydantic)\n      - Testing frameworks (pytest, unittest, mocking)\n      - Package management (poetry, pipenv, requirements.txt)\n      - Performance optimization (async/await, multiprocessing)\n      - Security best practices\n    EXPERTISE: "Python, Django, FastAPI, pytest, SQLAlchemy, Pydantic"\n  tools:\n    - "kimi_cli.tools.file:ReadFile"\n    - "kimi_cli.tools.file:WriteFile"\n    - "kimi_cli.tools.file:Replace"\n    - "kimi_cli.tools.shell:Shell"\n    - "kimi_cli.tools.web:SearchWeb"\n    - "kimi_cli.tools.web:FetchURL"\n    - "kimi_cli.tools.todo:SetTodoList"\n  exclude_tools:\n    - "kimi_cli.tools.multiagent:Task"。
+
+# 指令3
+接下来创建 system.md 提示词模板文件：在 ~/.kimi/python-dev-agent/ 目录下创建 system.md：You are {{KIMI_NAME}}, an expert Python developer with 10+ years of experience.\n\n{{ROLE_ADDITIONAL}}\n\nCurrent working directory: {{KIMI_WORK_DIR}}\nAvailable tools: {{KIMI_TOOLS}}\nAvailable skills: {{KIMI_SKILLS}}\n\nYour expertise includes: {{EXPERTISE}}\n\nDevelopment Approach:\n1. Follow PEP 8 style guidelines and Python best practices\n2. Write type-annotated code using modern type hints\n3. Use async/await for I/O operations where appropriate\n4. Write comprehensive tests with pytest\n5. Use context managers for resource management\n6. Implement proper error handling and logging\n7. Follow principle of least surprise in API design\n\nWhen generating code:\n- Use meaningful variable and function names\n- Add docstrings following Google style\n- Include proper imports and __all__ declarations\n- Consider performance implications\n- Add security considerations where relevant\n\nAlways provide explanations for design decisions and suggest improvements.
+
+# 指令4
+最后，测试和注册自定义 Agent：在 Kimi CLI 的配置中注册新的 Agent，或通过命令行指定：kimi --agent ~/.kimi/python-dev-agent/agent.yaml。测试 Agent 的功能：询问 Python 相关问题、请求生成 Python 代码、要求审查和优化现有 Python 代码、请求添加测试用例。验证 Agent 的工具访问和排除是否正确。检查 Agent 的行为是否符合预期的 Python 专家角色。更新文档，说明如何创建和使用自定义 Agent。
+
+## Task 8: 创建 Docker 容器管理 Skill
+
+# 指令1
+我需要为当前的 Kimi CLI 项目创建一个 Docker 容器管理 Skill。请先执行以下操作：扫描代码库，查看现有的 Skill 文件（~/.kimi/.agents/skills/ 或 src/kimi_cli 中的 skills 目录）。阅读现有 Skill 的格式和结构（如 gen-changelog、gen-docs 等）。了解 Skill 如何被调用和执行。查看 Shell 工具的使用方式，了解如何执行 Docker 命令。向我汇报 Skill 的格式、如何创建新 Skill 以及 Skill 的调用方式。
+
+# 指令2
+现在创建 Docker 管理 Skill 文件：在 ~/.kimi/.agents/skills/ 目录下创建 docker-manager.md：---\nname: docker-manager\ndescription: Manage Docker containers, images, volumes, and networks\n---\n\nYou are a Docker expert with deep knowledge of:\n\n- Docker containers: create, start, stop, restart, remove, logs, exec\n- Docker images: build, pull, push, tag, prune\n- Docker volumes: create, remove, inspect\n- Docker networks: create, connect, disconnect, remove\n- Docker Compose: up, down, logs, ps\n\nYou can help users with:\n1. Creating and managing containers with appropriate configurations\n2. Building and managing Docker images\n3. Setting up Docker Compose for multi-container applications\n4. Troubleshooting Docker issues\n5. Optimizing Docker configurations for performance and security\n\nWhen executing Docker commands:\n- Always use -f flag to remove containers if needed\n- Use --rm flag for temporary containers\n- Specify proper resource limits (CPU, memory)\n- Use proper network isolation\n- Follow Docker security best practices\n\nExample commands you might use:\n- `docker run -d --name myapp -p 80:80 nginx`\n- `docker ps -a`\n- `docker logs -f myapp`\n- `docker-compose up -d`\n- `docker system prune -a`\n\nAlways explain what each command does and why it's needed。
+
+# 指令3
+接下来测试 Docker 管理 Skill：在 Kimi CLI 的交互模式中调用 Skill：/skill:docker-manager。测试以下场景：询问如何运行一个 Nginx 容器、请求创建 Docker Compose 配置、询问如何查看容器日志、请求清理未使用的 Docker 资源。验证 Skill 是否能够提供正确和有用的建议。测试复杂场景，如多容器应用部署。检查 Skill 的输出是否清晰、命令是否准确。
+
+# 指令4
+最后，完善和文档化 Docker 管理 Skill：根据测试结果优化 Skill 的提示词。添加更多常见使用场景和示例命令。创建 Skill 的使用文档：Docker Manager Skill 使用指南\n=============================\n\n调用方式：/skill:docker-manager\n\n主要功能：\n- 容器管理\n- 镜像管理\n- Compose 配置生成\n- 故障排除\n- 资源清理\n\n使用示例：\n1. 启动一个容器：询问 "如何运行一个 Redis 容器？"\n2. 创建 Compose 文件：请求 "为我的应用创建 docker-compose.yml"\n3. 查看日志：询问 "如何查看容器日志？"\n\n将文档保存为 ~/.kimi/.agents/skills/docker-manager-guide.md。
+
+## Task 9: 集成 Context7 MCP 服务器
+
+# 指令1
+我需要为当前的 Kimi CLI 项目集成 Context7 MCP 服务器。请先执行以下操作：扫描代码库，查看 MCP 集成的相关代码（src/kimi_cli/acp/mcp.py 或类似位置）。查看 MCP 服务器的配置方式，了解如何注册和配置 MCP 服务器。找到 MCP 配置文件的存储位置（~/.kimi/mcp.json 或类似）。查看现有的 MCP 服务器集成示例。向我汇报 MCP 服务器的配置格式、集成方式以及如何添加新的 MCP 服务器。
+
+# 指令2
+现在使用 CLI 命令添加 Context7 MCP 服务器：执行以下命令添加 HTTP-based MCP 服务器：kimi mcp add --transport http context7 https://mcp.context7.com/mcp --header "CONTEXT7_API_KEY: ctx7sk-your-api-key"\n\n或手动配置到 ~/.kimi/mcp.json：{\n  "mcpServers": {\n    "context7": {\n      "url": "https://mcp.context7.com/mcp",\n      "headers": {\n        "CONTEXT7_API_KEY": "your-api-key"\n      }\n    }\n  }\n}。
+
+# 指令3
+接下来测试 MCP 服务器的连接和功能：测试 MCP 服务器连接：kimi mcp test context7。验证连接是否成功，查看可用的工具列表。重启 Kimi CLI，确保 MCP 服务器在启动时自动连接。测试 Context7 提供的工具功能：询问 AI 使用 Context7 的搜索功能、请求使用其他 Context7 提供的工具。验证工具调用是否正常工作。
+
+# 指令4
+最后，配置和管理 MCP 服务器：列出所有已配置的 MCP 服务器：kimi mcp list。管理 MCP 服务器：kimi mcp remove context7、kimi mcp auth context7。在配置中设置工具过滤和权限：{\n  "mcpServers": {\n    "context7": {\n      "url": "https://mcp.context7.com/mcp",\n      "headers": {\n        "CONTEXT7_API_KEY": "your-api-key"\n      },\n      "includeTools": ["search", "summarize"],\n      "excludeTools": ["sensitive-tool"],\n      "trust": false\n    }\n  }\n}。更新文档，说明如何集成和管理 MCP 服务器。
+
+## Task 10: 创建代码性能分析工具
+
+# 指令1
+我需要为当前的 Kimi CLI 项目创建一个代码性能分析工具。请先执行以下操作：扫描代码库，查看现有工具的实现方式（src/kimi_cli/tools/ 目录）。阅读一个简单工具的实现（如 file/read.py），了解工具的结构和接口。查看工具注册的方式（src/kimi_cli/soul/toolset.py）。了解 Pydantic 模型的使用方式，用于工具参数定义。向我汇报工具的接口定义、如何创建新工具以及工具注册的流程。
+
+# 指令2
+现在创建代码性能分析工具：创建 src/kimi_cli/tools/performance/analyzer.py 文件：from pathlib import Path\nfrom typing import override\nfrom kosong.tooling import CallableTool2, ToolOk\nfrom pydantic import BaseModel, Field\n\nclass AnalyzePerformanceParams(BaseModel):\n    path: str = Field(description="Path to code file to analyze")\n    language: str = Field(default="python", description="Programming language")\n\nclass PerformanceAnalyzer(CallableTool2[AnalyzePerformanceParams]):\n    name = "PerformanceAnalyzer"\n    description = "Analyze code performance and provide optimization suggestions"\n    params = AnalyzePerformanceParams\n\n    @override\n    async def __call__(self, params: AnalyzePerformanceParams) -> ToolOk:\n        file_path = Path(params.path)\n        if not file_path.exists():\n            return ToolOk(output=f"File not found: {params.path}")\n\n        content = file_path.read_text()\n        analysis = self._analyze_code(content, params.language)\n        return ToolOk(output=analysis)\n\n    def _analyze_code(self, content: str, language: str) -> str:\n        """Analyze code and provide performance suggestions"""\n        suggestions = []\n\n        if language == "python":\n            suggestions = self._analyze_python(content)\n\n        return self._format_report(suggestions)\n\n    def _analyze_python(self, content: str) -> list:\n        """Analyze Python code for performance issues"""\n        issues = []\n\n        # Check for common performance issues\n        if "list comprehension" in content.lower():\n            issues.append({\n                "type": "info",\n                "message": "List comprehension is being used, which is good for performance"\n            })\n\n        if "for i in range(len(" in content:\n            issues.append({\n                "type": "warning",\n                "message": "Consider using enumerate() instead of range(len())"\n            })\n\n        return issues\n\n    def _format_report(self, issues: list) -> str:\n        """Format analysis report"""\n        if not issues:\n            return "No performance issues found."\n\n        report = "Performance Analysis Report:\\n\\n"\n        for issue in issues:\n            emoji = "✅" if issue["type"] == "info" else "⚠️"\n            report += f"{emoji} {issue['message']}\\n"\n\n        return report。
+
+# 指令3
+接下来在工具集注册器中注册新工具：编辑 src/kimi_cli/soul/toolset.py 文件：from kimi_cli.tools.performance.analyzer import PerformanceAnalyzer。在工具集初始化时添加新工具：def get_default_toolset() -> ToolSet:\n    return ToolSet(\n        tools=[\n            # ... existing tools ...\n            PerformanceAnalyzer(),\n        ]\n    )。
+
+# 指令4
+最后，测试性能分析工具：重启 Kimi CLI，确保工具正确加载。测试工具功能：在交互模式中："请使用 PerformanceAnalyzer 工具分析 src/kimi_cli/app.py 文件的性能"。或直接让 AI 使用："分析这个 Python 文件的性能，并提供优化建议"。验证工具是否能够：正确读取文件、分析代码中的性能问题、提供有用的优化建议。测试不同语言的支持（如果实现了多语言支持）。更新工具的文档和使用示例。
+
+## Task 11: 配置多 Agent 协作系统
+
+# 指令1
+我需要为当前的 Kimi CLI 项目配置多 Agent 协作系统。请先执行以下操作：扫描代码库，查看 multiagent 工具的实现（src/kimi_cli/tools/multiagent/ 目录）。阅读 Agent 规范文件，了解 subagents 的配置方式。查看主 Agent 如何调用子 Agent。理解 Agent 之间的上下文共享机制。向我汇报多 Agent 系统的工作原理、如何配置子 Agent 以及任务分配机制。
+
+# 指令2
+现在创建前端开发子 Agent：在 ~/.kimi/frontend-dev-agent/ 目录下创建 agent.yaml：version: 1\nagent:\n  name: "Frontend Development Specialist"\n  system_prompt_path: ./system.md\n  system_prompt_args:\n    ROLE_ADDITIONAL: |\n      You are a frontend development specialist with expertise in:\n      - Modern JavaScript/TypeScript (ES6+, React, Vue, Svelte)\n      - CSS frameworks (Tailwind, CSS Modules, Styled Components)\n      - State management (Redux, Zustand, Pinia)\n      - Build tools (Vite, Webpack, Rollup)\n      - Performance optimization and accessibility\n    EXPERTISE: "React, Vue, TypeScript, CSS, Tailwind, Vite"\n  tools:\n    - "kimi_cli.tools.file:ReadFile"\n    - "kimi_cli.tools.file:WriteFile"\n    - "kimi_cli.tools.shell:Shell"\n    - "kimi_cli.tools.web:SearchWeb"\n    - "kimi_cli.tools.todo:SetTodoList"。创建 frontend-dev-agent/system.md 提示词文件。
+
+# 指令3
+接下来创建后端开发子 Agent：在 ~/.kimi/backend-dev-agent/ 目录下创建 agent.yaml：version: 1\nagent:\n  name: "Backend Development Specialist"\n  system_prompt_path: ./system.md\n  system_prompt_args:\n    ROLE_ADDITIONAL: |\n      You are a backend development specialist with expertise in:\n      - Python frameworks (Django, FastAPI, Flask)\n      - Database design and optimization\n      - API design (REST, GraphQL)\n      - Authentication and authorization\n      - Performance optimization (caching, async)\n    EXPERTISE: "Python, Django, FastAPI, SQLAlchemy, PostgreSQL, Redis"\n  tools:\n    - "kimi_cli.tools.file:ReadFile"\n    - "kimi_cli.tools.file:WriteFile"\n    - "kimi_cli.tools.shell:Shell"\n    - "kimi_cli.tools.web:SearchWeb"\n    - "kimi_cli.tools.todo:SetTodoList"。创建 backend-dev-agent/system.md 提示词文件。
+
+# 指令4
+最后，在主 Agent 中配置子 Agent：编辑主 Agent 的配置文件（或创建新的协调 Agent）：version: 1\nagent:\n  name: "Full-Stack Development Coordinator"\n  system_prompt_path: ./system.md\n  system_prompt_args:\n    ROLE_ADDITIONAL: |\n      You are a full-stack development coordinator.\n      You have access to specialized frontend and backend agents.\n      Delegate tasks appropriately based on task requirements.\n  tools:\n    - "kimi_cli.tools.file:ReadFile"\n    - "kimi_cli.tools.file:WriteFile"\n    - "kimi_cli.tools.multiagent:Task"\n  subagents:\n    frontend:\n      path: ~/.kimi/frontend-dev-agent/agent.yaml\n      description: "Specialized in frontend development"\n    backend:\n      path: ~/.kimi/backend-dev-agent/agent.yaml\n      description: "Specialized in backend development"。测试多 Agent 协作："请创建一个全栈 Web 应用的登录功能"。验证主 Agent 是否能够：识别任务需要前端和后端、正确调用相应的子 Agent、协调子 Agent 之间的协作、整合子 Agent 的输出。更新文档，说明如何配置和使用多 Agent 系统。
+
+## Task 12: 代码架构分析 - Agent 规范系统
+
+# 指令1
+请阅读并分析 Kimi CLI 的 Agent 规范系统。请执行以下操作：扫描代码库，找到 Agent 规范相关的文件（src/kimi_cli/agents/ 目录）。阅读 agentspec.py 文件，了解 Agent 规范的解析和加载机制。查看 default agent 的配置文件，了解规范的结构。查看 system prompt 模板文件，了解模板变量的使用方式。向我汇报 Agent 规范系统的目录结构、核心组件以及规范文件的格式。
+
+# 指令2
+现在请深入分析 Agent 规范的结构和语法：分析 agent.yaml 配置文件的各个字段：version：版本号、name：Agent 名称、description：Agent 描述、system_prompt_path：提示词模板路径、system_prompt_args：提示词模板参数、tools：启用的工具列表、exclude_tools：排除的工具列表、subagents：子 Agent 配置。理解每个字段的作用和约束。分析 Agent 继承机制（extend 字段）。
+
+# 指令3
+接下来分析 Agent 规范的加载和解析过程：查看 agentspec.py 中的 load_agentspec() 函数，了解如何加载 Agent 规范。理解 YAML 解析的过程和错误处理。查看模板变量的替换机制，了解 {{KIMI_NAME}}、{{KIMI_WORK_DIR}} 等变量是如何被替换的。分析工具注册和过滤的逻辑。理解 subagents 的加载和引用机制。
+
+# 指令4
+最后，生成 Agent 规范系统的架构分析报告：创建一份详细的文档，包括：1. Agent 规范系统概述、2. 规范文件格式详解（YAML 结构）、3. 字段参考手册、4. 模板变量列表、5. 工具注册和过滤机制、6. 子 Agent 配置和使用、7. 创建自定义 Agent 的完整流程、8. 最佳实践和常见模式、9. 示例代码和配置。提供完整的示例 Agent 规范，包括：基础 Agent、带继承的 Agent、带子 Agent 的 Agent、专用领域的 Agent。使用图表展示 Agent 规范系统的架构和加载流程。报告应技术性强、信息全面，便于开发者深入理解和扩展系统。
